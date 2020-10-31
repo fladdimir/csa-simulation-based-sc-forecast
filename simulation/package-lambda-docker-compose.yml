@@ -1,0 +1,10 @@
+version: "2.1"
+
+services:
+  package-lambda:
+    build:
+      dockerfile: ./package-lambda-docker-file
+      context: ./
+    volumes:
+      - .:/usr/src
+    command: /usr/src/package.sh

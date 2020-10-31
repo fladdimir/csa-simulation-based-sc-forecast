@@ -1,0 +1,18 @@
+version: "2.1"
+
+services:
+  dashboard:
+    build: ./
+    volumes:
+      - .:/usr/src
+    ports:
+      - "8050:8050"
+    command: "python3 ./app.py"
+    environment:
+      - HOST=0.0.0.0
+
+  truncate-tables:
+    build: ./
+    volumes:
+      - .:/usr/src
+    command: "python3 truncate_tables.py"

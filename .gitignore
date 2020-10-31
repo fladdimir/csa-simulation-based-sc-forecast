@@ -1,0 +1,11 @@
+venv
+__pycache__
+
+.terraform
+.terraform.tfstate.lock.info
+terraform.tfstate
+terraform.tfstate.backup
+
+# lambda deployment units:
+package
+function.zip

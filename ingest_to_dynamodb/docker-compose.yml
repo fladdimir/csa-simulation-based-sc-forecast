@@ -1,0 +1,8 @@
+version: "2.1"
+
+services:
+  package-lambda:
+    build: ./
+    volumes:
+      - .:/usr/src
+    command: ./package.sh

@@ -1,0 +1,72 @@
+version: "2.1"
+
+networks:
+  app_network:
+
+services:
+  localstack:
+    container_name: "localstack_main"
+    image: localstack/localstack:0.12.1
+    networks:
+      - app_network
+    privileged: true
+    ports:
+      - "4566:4566"
+      - "4571:4571"
+    environment:
+      - SERVICES=lambda,sqs,dynamodb,kinesis,iam,cloudwatch,ec2
+      - DEBUG=${DEBUG-0}
+      - LAMBDA_EXECUTOR=docker
+      - LAMBDA_REMOTE_DOCKER=false
+      - LAMBDA_REMOVE_CONTAINERS=false
+      - LAMBDA_DOCKER_NETWORK=csa-tf_app_network
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - HOST_TMP_FOLDER=${TMPDIR}
+      - LOCALSTACK_HOSTNAME=localhost
+      - DEFAULT_REGION=us-east-1
+      - TEST_AWS_ACCOUNT_ID=000000000000
+    volumes:
+      - "${TMPDIR:-/tmp/localstack}:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  # need to wait for localstack & resource creation via terraform
+  dashboard: # runs on 8050
+    depends_on:
+      - localstack
+    networks:
+      - app_network
+    extends:
+      file: ./dashboard/docker-compose.yml
+      service: dashboard
+    environment:
+      - AWS_ENDPOINT=http://localstack:4566
+
+  emulation: # runs on 5001
+    depends_on:
+      - localstack
+    networks:
+      - app_network
+    extends:
+      file: ./simulation/docker-compose.yml
+      service: emulation-process-web-animation
+    environment:
+      - AWS_ENDPOINT=http://localstack:4566
+
+  package-ingest-lambda:
+    extends:
+      file: ./ingest_to_dynamodb/docker-compose.yml
+      service: package-lambda
+
+  package-simulation-lambda:
+    extends:
+      file: ./simulation/package-lambda-docker-compose.yml
+      service: package-lambda
+
+  truncate-tables:
+    networks:
+      - app_network
+    extends:
+      file: ./dashboard/docker-compose.yml
+      service: truncate-tables
+    environment:
+      - AWS_ENDPOINT=http://localstack:4566

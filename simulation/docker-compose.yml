@@ -1,0 +1,10 @@
+version: "2.1"
+
+services:
+  emulation-process-web-animation:
+    build: ./
+    volumes:
+      - .:/usr/src
+    ports:
+      - "5001:5001"
+    command: "python3 ./executables/run_web_proc_anim_active_emulation.py"
